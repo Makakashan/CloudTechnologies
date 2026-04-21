@@ -19,7 +19,7 @@ volumes:
 	-docker volume create backend-data
 
 run-postgres:
-	-docker rm -f postgres
+	-docker rm -f postgres 2>/dev/null
 	docker run -d \
 		--name postgres \
 		--network product-net \
@@ -30,7 +30,7 @@ run-postgres:
 		postgres:16-alpine
 
 run-redis:
-	-docker rm -f redis
+	-docker rm -f redis 2>/dev/null
 	docker run -d \
 		--name redis \
 		--network product-net \
@@ -39,7 +39,7 @@ run-redis:
 		redis-server --save "" --appendonly no
 
 run-api:
-	-docker rm -f api
+	-docker rm -f api 2>/dev/null
 	docker run -d \
 		--name api \
 		--network product-net \
@@ -55,14 +55,16 @@ run-api:
 		product-backend
 
 run-nginx:
-	-docker rm -f nginx
+	-docker rm -f nginx 2>/dev/null
 	docker run -d \
 		--name nginx \
 		--network product-net \
 		-p 80:8080 \
 		--mount type=bind,src=$(PROJECT_ROOT)/nginx/default.conf,target=/etc/nginx/conf.d/default.conf,readonly \
+		--tmpfs /tmp:rw,noexec,nosuid,size=64m,uid=101 \
+		--tmpfs /var/cache/nginx:rw,noexec,nosuid,size=64m,uid=101 \
+		--tmpfs /var/run:rw,noexec,nosuid,size=16m,uid=101 \
 		product-frontend
-
 
 down:
 	-docker rm -f nginx
