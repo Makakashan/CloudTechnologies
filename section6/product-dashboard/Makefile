@@ -91,3 +91,23 @@ clean: down
 	-docker volume rm pgdata
 	-docker volume rm backend-data
 	-docker network rm product-net
+
+
+buildx-v2:
+	docker buildx create --name multiplatform --use 2>/dev/null || true
+	docker buildx build \
+		--platform linux/amd64,linux/arm64 \
+		-t makakashan/product-backend:v2 \
+		--build-arg BUILD_DATE=$(shell date -u +%Y-%m-%dT%H:%M:%SZ) \
+		--build-arg VERSION=v2 \
+		--push \
+		./backend
+	docker buildx build \
+		--platform linux/amd64,linux/arm64 \
+		-t makakashan/product-frontend:v2 \
+		--build-arg BUILD_DATE=$(shell date -u +%Y-%m-%dT%H:%M:%SZ) \
+		--build-arg VERSION=v2 \
+		--push \
+		-f frontend/Dockerfile .
+	docker buildx imagetools inspect makakashan/product-backend:v2
+	docker buildx imagetools inspect makakashan/product-frontend:v2
