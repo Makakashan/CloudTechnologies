@@ -23,6 +23,7 @@
 		"redis": "^4.7.0"
 	},
 	"devDependencies": {
+		"nodemon": "^3.1.14",
 		"supertest": "^7.1.1"
 	}
 }

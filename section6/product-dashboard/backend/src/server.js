@@ -2,7 +2,7 @@ import { Pool } from "pg";
 import { createClient } from "redis";
 import { createApp } from "./app.js";
 
-const PORT = Number(process.env.PORT || 5000);
+const PORT = Number(process.env.PORT || 3000);
 
 const POSTGRES_HOST = process.env.POSTGRES_HOST || "postgres";
 const POSTGRES_PORT = Number(process.env.POSTGRES_PORT || 5432);

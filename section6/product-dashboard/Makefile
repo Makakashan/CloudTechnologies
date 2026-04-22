@@ -43,7 +43,7 @@ run-api:
 	docker run -d \
 		--name api \
 		--network product-net \
-		-e PORT=5000 \
+		-e PORT=3000 \
 		-e POSTGRES_HOST=postgres \
 		-e POSTGRES_PORT=5432 \
 		-e POSTGRES_DB=productsdb \
@@ -59,7 +59,7 @@ run-nginx:
 	docker run -d \
 		--name nginx \
 		--network product-net \
-		-p 80:8080 \
+		-p 80:80 \
 		--mount type=bind,src=$(PROJECT_ROOT)/nginx/default.conf,target=/etc/nginx/conf.d/default.conf,readonly \
 		--tmpfs /tmp:rw,noexec,nosuid,size=64m,uid=101 \
 		--tmpfs /var/cache/nginx:rw,noexec,nosuid,size=64m,uid=101 \

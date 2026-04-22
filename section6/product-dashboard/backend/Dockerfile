@@ -24,7 +24,7 @@ ARG NODE_ENV=production
 WORKDIR /app
 
 ENV NODE_ENV=${NODE_ENV}
-ENV PORT=5000
+ENV PORT=3000
 
 LABEL org.opencontainers.image.created="${BUILD_DATE}" \
   org.opencontainers.image.version="${VERSION}" \
@@ -36,9 +36,9 @@ COPY package*.json ./
 
 USER node
 
-EXPOSE 5000
+EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget -q -O - http://127.0.0.1:5000/health >/dev/null || exit 1
+  CMD wget -q -O - http://127.0.0.1:3000/health >/dev/null || exit 1
 
 CMD ["npm", "start"]
