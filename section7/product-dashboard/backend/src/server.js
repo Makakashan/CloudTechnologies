@@ -48,29 +48,45 @@ async function waitForPostgres(maxAttempts = 20, delayMs = 1500) {
 
 async function initDb() {
 	await pool.query(`
-    CREATE TABLE IF NOT EXISTS items (
-      id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL,
-      price NUMERIC(12,2),
-      category TEXT NOT NULL DEFAULT 'General',
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
+        CREATE TABLE IF NOT EXISTS items (
+            id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL,
+            price NUMERIC(12,2),
+            category TEXT NOT NULL DEFAULT 'General',
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+    `);
 
 	const { rows } = await pool.query("SELECT COUNT(*)::int AS c FROM items");
 	if ((rows[0]?.c ?? 0) === 0) {
 		await pool.query(
 			`INSERT INTO items (name, price, category)
-       VALUES
-       ('Laptop', 4200, 'Electronics'),
-       ('Office Chair', 850, 'Furniture')`,
+             VALUES ('Laptop', 4200, 'Electronics'),
+                    ('Office Chair', 850, 'Furniture')`,
 		);
+	}
+}
+
+async function waitForRedis(maxAttempts = 20, delayMs = 1000) {
+	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+		try {
+			await redis.ping();
+			console.log(`Redis is ready (attempt ${attempt}/${maxAttempts})`);
+			return;
+		} catch (err) {
+			console.log(
+				`Waiting for Redis (${attempt}/${maxAttempts}): ${err.message}`,
+			);
+			if (attempt === maxAttempts) throw err;
+			await sleep(delayMs);
+		}
 	}
 }
 
 async function bootstrap() {
 	await redis.connect();
 	await waitForPostgres();
+	await waitForRedis();
 	await initDb();
 
 	const app = createApp({ db: pool, redis });
