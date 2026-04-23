@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
 if [ $# -lt 2 ]; then
     echo "Usage: $0 <archive_path> <volume_name>"
     exit 1
@@ -9,7 +11,12 @@ fi
 ARCHIVE_PATH=$1
 VOLUME_NAME=$2
 
-if [ ! -f "${ARCHIVE_PATH}" ]; then
+case "${ARCHIVE_PATH}" in
+    /*) ARCHIVE_ABS_PATH="${ARCHIVE_PATH}" ;;
+    *) ARCHIVE_ABS_PATH="${SCRIPT_DIR}/${ARCHIVE_PATH}" ;;
+esac
+
+if [ ! -f "${ARCHIVE_ABS_PATH}" ]; then
     echo "Error: Archive '${ARCHIVE_PATH}' not found!"
     exit 1
 fi
@@ -20,9 +27,9 @@ docker volume create ${VOLUME_NAME} 2>/dev/null || true
 
 docker run --rm \
     --mount source=${VOLUME_NAME},target=/volume_data \
-    -v $(pwd)/$(dirname ${ARCHIVE_PATH}):/backup \
+    -v "$(dirname "${ARCHIVE_ABS_PATH}"):/backup" \
     alpine:latest \
-    tar xzf /backup/$(basename ${ARCHIVE_PATH}) -C /volume_data
+    tar xzf /backup/$(basename "${ARCHIVE_ABS_PATH}") -C /volume_data
 
 echo "Restore completed!"
 
@@ -40,4 +47,4 @@ if echo "${VOLUME_NAME}" | grep -qi "postgres\|pgdata"; then
         || echo "Note: Verification requires clean shutdown. Data restored successfully."
 fi
 
-echo "Volume '${VOLUME_NAME}' restored from ${ARCHIVE_PATH}"
+echo "Volume '${VOLUME_NAME}' restored from ${ARCHIVE_ABS_PATH}"

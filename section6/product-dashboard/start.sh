@@ -1,13 +1,15 @@
 #!/bin/bash
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
 NETWORK_NAME="product-net"
 POSTGRES_VOLUME="pgdata"
 BACKEND_VOLUME="backend-data"
 
 # Build images
-docker build -t product-backend ./backend
-docker build -t product-frontend -f ./frontend/Dockerfile .
+docker build -t product-backend "${SCRIPT_DIR}/backend"
+docker build -t product-frontend -f "${SCRIPT_DIR}/frontend/Dockerfile" "${SCRIPT_DIR}"
 
 # Create network
 docker network create ${NETWORK_NAME} 2>/dev/null || echo "Network ${NETWORK_NAME} already exists"
@@ -61,7 +63,7 @@ docker run -d \
     --name nginx \
     --network ${NETWORK_NAME} \
     -p 80:80 \
-    --mount type=bind,src=$(pwd)/nginx/default.conf,target=/etc/nginx/conf.d/default.conf,readonly \
+    --mount type=bind,src="${SCRIPT_DIR}/nginx/default.conf",target=/etc/nginx/conf.d/default.conf,readonly \
     --tmpfs /tmp:rw,noexec,nosuid,size=64m,uid=101 \
     --tmpfs /var/cache/nginx:rw,noexec,nosuid,size=64m,uid=101 \
     --tmpfs /var/run:rw,noexec,nosuid,size=16m,uid=101 \

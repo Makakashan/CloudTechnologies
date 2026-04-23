@@ -1,6 +1,6 @@
 SHELL := /bin/sh
 
-PROJECT_ROOT := /home/makakashan/Work/Chmura2026/section6/product-dashboard
+PROJECT_ROOT := $(CURDIR)
 
 .PHONY: up down restart logs ps build network volumes run-postgres run-redis run-api run-nginx clean
 
@@ -8,8 +8,8 @@ up: build network volumes run-postgres run-redis run-api run-nginx ps
 	@echo "App is available at: http://localhost/"
 
 build:
-	docker build -t product-backend $(PROJECT_ROOT)/backend
-	docker build -t product-frontend -f $(PROJECT_ROOT)/frontend/Dockerfile $(PROJECT_ROOT)
+	docker build -t product-backend "$(PROJECT_ROOT)/backend"
+	docker build -t product-frontend -f "$(PROJECT_ROOT)/frontend/Dockerfile" "$(PROJECT_ROOT)"
 
 network:
 	-docker network create product-net
@@ -60,7 +60,7 @@ run-nginx:
 		--name nginx \
 		--network product-net \
 		-p 80:80 \
-		--mount type=bind,src=$(PROJECT_ROOT)/nginx/default.conf,target=/etc/nginx/conf.d/default.conf,readonly \
+		--mount type=bind,src="$(PROJECT_ROOT)/nginx/default.conf",target=/etc/nginx/conf.d/default.conf,readonly \
 		--tmpfs /tmp:rw,noexec,nosuid,size=64m,uid=101 \
 		--tmpfs /var/cache/nginx:rw,noexec,nosuid,size=64m,uid=101 \
 		--tmpfs /var/run:rw,noexec,nosuid,size=16m,uid=101 \

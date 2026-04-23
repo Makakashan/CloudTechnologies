@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
 NETWORK_NAME="product-net"
 POSTGRES_VOLUME="pgdata"
 
@@ -38,9 +40,9 @@ echo "=== Starting Backend in DEV mode ==="
 docker rm -f api-dev 2>/dev/null || true
 
 # Install nodemon locally if not present
-if [ ! -d "./backend/node_modules/nodemon" ]; then
+if [ ! -d "${SCRIPT_DIR}/backend/node_modules/nodemon" ]; then
     echo "Installing nodemon..."
-    cd backend && npm install --save-dev nodemon && cd ..
+    cd "${SCRIPT_DIR}/backend" && npm install --save-dev nodemon
 fi
 
 docker run -d \
@@ -54,16 +56,16 @@ docker run -d \
     -e POSTGRES_PASSWORD=products \
     -e REDIS_URL=redis://redis:6379 \
     -e NODE_ENV=development \
-    --mount type=bind,src=$(pwd)/backend/src,target=/app/src \
-    --mount type=bind,src=$(pwd)/backend/package.json,target=/app/package.json,readonly \
-    -v $(pwd)/backend/node_modules:/app/node_modules \
+    --mount type=bind,src="${SCRIPT_DIR}/backend/src",target=/app/src \
+    --mount type=bind,src="${SCRIPT_DIR}/backend/package.json",target=/app/package.json,readonly \
+    -v "${SCRIPT_DIR}/backend/node_modules:/app/node_modules" \
     --tmpfs /tmp:rw,noexec,nosuid,size=64m \
     -w /app \
     node:20-alpine \
     npx nodemon --watch src --ext js --exec "node src/server.js"
 
 echo ""
-echo "Dev backend started. Watching $(pwd)/backend/src/"
+echo "Dev backend started. Watching ${SCRIPT_DIR}/backend/src/"
 echo "Modify src/server.js and see changes without docker build!"
 echo ""
 docker logs -f api-dev
